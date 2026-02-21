@@ -6,7 +6,7 @@ export default function Home() {
   const [videos, setVideos] = useState([]);
 
   const generateVideos = async () => {
-    const res = await fetch("/api/getStockVideos?query=" + prompt);
+    const res = await fetch("/api/getStockVideos?q=" + prompt);
     const data = await res.json();
     setVideos(data.videos || []);
   };
