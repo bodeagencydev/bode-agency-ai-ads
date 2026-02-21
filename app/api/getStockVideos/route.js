@@ -40,19 +40,25 @@ export async function GET(request) {
       );
     }
 
-    const data = await pexelsResponse.json();
-    const videos = (data.videos || [])
-      .map((video) => {
-        const bestFile = (video.video_files || [])
-          .slice()
-          .sort((a, b) => (b.width || 0) - (a.width || 0))[0];
+    const verticalVideos = (data.videos || [])
+  .filter((video) => {
+    const bestFile = (video.video_files || [])
+      .slice()
+      .sort((a, b) => (b.height || 0) - (a.height || 0))[0];
 
-        return bestFile?.link;
-      })
-      .filter(Boolean)
-      .slice(0, 6);
+    return bestFile && bestFile.height > bestFile.width; // only vertical
+  })
+  .map((video) => {
+    const bestFile = (video.video_files || [])
+      .slice()
+      .sort((a, b) => (b.height || 0) - (a.height || 0))[0];
 
-    return NextResponse.json({ videos });
+    return bestFile?.link;
+  })
+  .filter(Boolean)
+  .slice(0, 6);
+
+return NextResponse.json({ videos: verticalVideos });
   } catch {
     return NextResponse.json(
       { error: 'Unexpected error while fetching stock videos' },
