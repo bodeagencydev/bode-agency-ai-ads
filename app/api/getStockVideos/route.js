@@ -41,22 +41,30 @@ export async function GET(request) {
     }
 
     const verticalVideos = (data.videos || [])
-  .filter((video) => {
-    const bestFile = (video.video_files || [])
-      .slice()
-      .sort((a, b) => (b.height || 0) - (a.height || 0))[0];
-
-    return bestFile && bestFile.height > bestFile.width; // only vertical
-  })
   .map((video) => {
-    const bestFile = (video.video_files || [])
-      .slice()
+    const bestVertical = (video.video_files || [])
+      .filter(file => file.height > file.width) // only vertical files
       .sort((a, b) => (b.height || 0) - (a.height || 0))[0];
 
-    return bestFile?.link;
+    return bestVertical?.link;
   })
   .filter(Boolean)
   .slice(0, 6);
+
+// Fallback: if no vertical found, return any videos
+if (verticalVideos.length === 0) {
+  const fallback = (data.videos || [])
+    .map((video) => {
+      const bestFile = (video.video_files || [])
+        .sort((a, b) => (b.width || 0) - (a.width || 0))[0];
+
+      return bestFile?.link;
+    })
+    .filter(Boolean)
+    .slice(0, 6);
+
+  return NextResponse.json({ videos: fallback });
+}
 
 return NextResponse.json({ videos: verticalVideos });
   } catch {
